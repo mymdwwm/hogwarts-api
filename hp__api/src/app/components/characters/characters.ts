@@ -1,7 +1,9 @@
-import {ChangeDetectorRef, Component, inject, OnInit, signal} from '@angular/core';
+import {ChangeDetectorRef, Component, inject, OnInit, signal, OnDestroy} from '@angular/core';
 import {CharacterModel} from '../../shared/models/character.model';
 import {CharacterService} from '../../shared/services/character-service';
 import {CharactersList} from './components/characters-list/characters-list';
+import {Subscription} from 'rxjs';
+
 
 @Component({
   selector: 'app-characters',
@@ -11,7 +13,7 @@ import {CharactersList} from './components/characters-list/characters-list';
   templateUrl: './characters.html',
   styleUrl: './characters.scss',
 })
-export class Characters implements OnInit {
+export class Characters implements OnInit, OnDestroy {
 
   private cdRef = inject(ChangeDetectorRef);
 
@@ -23,14 +25,21 @@ export class Characters implements OnInit {
 
   // 2. Injecter notre character service.
   private characterService = inject(CharacterService);
-  
+    // Subscriptions.
+  // private subscriptions: Subscription[] = [];
+  private subscription: Subscription = new Subscription();
 
   ngOnInit() {
-    this.characterService.getAllCharacter().subscribe((allCharacters: CharacterModel[]) => {
-      // Mode signal.
-      this.characters.set(allCharacters);
-      //this.characters = allCharacters;
-      //this.cdRef.detectChanges();
-    });
+
+    this.subscription.add(this.characterService.getAllCharacter().subscribe((allCharacters: CharacterModel[]) => {
+
+        this.characters.set(allCharacters);
+      }));
+    }
+  
+    ngOnDestroy() {
+      // Implémenter notre logique.
+      // this.subscriptions.forEach((subscription: Subscription) => subscription.unsubscribe());
+      this.subscription.unsubscribe();
   }
 }
