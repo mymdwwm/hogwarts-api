@@ -1,45 +1,51 @@
-import {ChangeDetectorRef, Component, inject, OnInit, signal, OnDestroy} from '@angular/core';
-import {CharacterModel} from '../../shared/models/character.model';
-import {CharacterService} from '../../shared/services/character-service';
-import {CharactersList} from './components/characters-list/characters-list';
-import {Subscription} from 'rxjs';
-
+import { ChangeDetectorRef, Component, inject, OnInit, signal, OnDestroy } from '@angular/core';
+import { CharacterModel } from '../../shared/models/character.model';
+import { CharacterService } from '../../shared/services/character-service';
+import { CharactersList } from './components/characters-list/characters-list';
+import { Subscription } from 'rxjs';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
-  selector: 'app-characters',
-  imports: [
-    CharactersList
-  ],
-  templateUrl: './characters.html',
-  styleUrl: './characters.scss',
+    selector: 'app-characters',
+    imports: [
+        CharactersList
+    ],
+    templateUrl: './characters.html',
+    styleUrl: './characters.scss',
 })
+
 export class Characters implements OnInit, OnDestroy {
 
-  private cdRef = inject(ChangeDetectorRef);
+    protected characters = signal<CharacterModel[]>([]);
+    protected section = signal('');
+    protected breadcrumb = signal('');
 
-  // 1. Stocker toutes les données de l'API dans une variable - affichage html.
-  //protected characters: CharacterModel[] = [];
-
-  // Mode signal.
-  protected characters = signal<CharacterModel[]>([]);
-
-  // 2. Injecter notre character service.
-  private characterService = inject(CharacterService);
+    private characterService = inject(CharacterService);
+    private activatedRoute = inject(ActivatedRoute);
     // Subscriptions.
-  // private subscriptions: Subscription[] = [];
-  private subscription: Subscription = new Subscription();
+    private subscriptions: Subscription[] = [];
 
-  ngOnInit() {
-
-    this.subscription.add(this.characterService.getAllCharacter().subscribe((allCharacters: CharacterModel[]) => {
-
-        this.characters.set(allCharacters);
-      }));
+    ngOnInit() {
+        this.getAllCharacters();
+        this.getActivatedRouteData();
     }
-  
+
+    private getAllCharacters() {
+        this.subscriptions.push(this.characterService.getAllCharacter().subscribe((allCharacters: CharacterModel[]) => {
+
+            this.characters.set(allCharacters);
+        }));
+    }
+
+    private getActivatedRouteData() {
+        this.subscriptions.push(this.activatedRoute.data.subscribe((data) => {
+            this.section.set(data['section']);
+            this.breadcrumb.set(data['breadcrumb']);
+        }))
+    }
+
     ngOnDestroy() {
-      // Implémenter notre logique.
-      // this.subscriptions.forEach((subscription: Subscription) => subscription.unsubscribe());
-      this.subscription.unsubscribe();
-  }
+        // Implémenter notre logique.
+        this.subscriptions.forEach((subscription: Subscription) => subscription.unsubscribe());
+    }
 }
