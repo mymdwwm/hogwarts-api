@@ -4,8 +4,8 @@ import {RouterLink, RouterLinkActive} from '@angular/router';
 @Component({
   selector: 'app-home',
   imports: [
-    RouterLink,
-    RouterLinkActive
+    RouterLink
+    ,RouterLinkActive
   ],
   templateUrl: './home.html',
   styleUrl: './home.scss',
